@@ -1,2 +1,0 @@
-username = C5371338
-pw = tesztjelszo
