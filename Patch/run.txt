@@ -1,0 +1,32 @@
+$ErrorActionPreference = "Stop"
+
+$DC01JH = "jumphostdc1.sf.priv"
+$DC02JH = "jumphostdc2.sf.priv"
+
+# Törli a korábbi kimeneti fájlt, ha létezik
+Remove-Item -Path ".\output.txt" -ErrorAction SilentlyContinue
+
+# Beolvassa a hostlist.txt fájlt és generálja a parancsokat
+Get-Content -Path ".\hostlist.txt" | ForEach-Object {
+    $SERVER = $_
+    $JUMPHOST = ""
+
+    # Ellenőrzi, hogy a szerver melyik jumphosthoz tartozik
+    if ($SERVER -match "DC01" -and $SERVER -match $DC01JH) {
+        $JUMPHOST = $DC01JH
+    } elseif ($SERVER -match "DC02" -and $SERVER -match $DC02JH) {
+        $JUMPHOST = $DC02JH
+    }
+
+    # Ha talált párosítást, készíti az SSH parancsot és kiírja a kimeneti fájlba
+    if ($JUMPHOST -ne "") {
+        $Command = "ssh deployer@$JUMPHOST ""knife ssh -m '$SERVER' \""sudo less /opt/Tanium/TaniumClient/Tools/Patch/logs/patch-process.log | grep 'All update successfully installed.'\"" && exit"""
+        try {
+            Out-File -FilePath ".\output.txt" -Append -InputObject "Generált parancs: $Command"
+        } catch {
+            Write-Host "Hiba a fájlba írás során: $_"
+        }
+    }
+}
+
+Write-Output "A generált parancsok kiírva az output.txt fájlba."
