@@ -1,0 +1,2 @@
+------ SHT repo leírása ------
+Nincs
